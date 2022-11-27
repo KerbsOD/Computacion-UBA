@@ -30,8 +30,8 @@ bool coordenadaValida(int p, int x, tablero& t){
 
 /******++++**************************** EJERCICIO cambiarBanderita ***********+++***********************/
 
-// O(n)
-bool contienePosicionBanderita(pos p, banderitas& b){ // O(1) + O(1) + O(1) + n * O( O(1) + O(1) + O(2)) = O(4n+3) = O(n)
+// O(n^2)
+bool contienePosicionBanderita(pos p, banderitas& b){ // O(1) + O(1) + O(1) + n * O( O(1) + O(1) + O(2)) = O(4n+3) = O(n^2)
 
     bool pertenece = false;     // O(1)
 
@@ -102,21 +102,21 @@ pos newPos(int x, int y) {  // O(1) + O(1) = O(2) = O(1)
 
 /******++++**************************** EJERCICIO sugerirAutomatico121 ***********+++***********************/
 
-// O(n^3)
+// O(n^4)
 bool hayPosicionSugerible(jugadas& j, banderitas& b, tablero& t, pos& p){
 
     bool hayPosicion = false; // O(1)
 
     int i = 0;                // O(1)
-    while(i < t.size()){      // O(1) + n*(linea 99 a 110) = O(1) + n*( O( 1 + n^2 + 2))= O(n^3)
+    while(i < t.size()){      // O(1) + n*(linea 99 a 110) = O(1) + n*( O( 1 + n^2 + 2))= O(n^4)
         int k = 0;            // O(1)
         while(k < t.size()){  // O(1) + n*(linea 101 a 108) = O(1) + n*( O(1 + n + n + 1 + 1 + 1 + 2) = O(n^2)
             pos pos1 = newPos(i, k); // O(1) + O(newPos) = O(2) = O(1)
-            if(esPosicionSinJugarYSinBanderita(pos1, j, b, t) && // O(esPosicionSinJugarYSinBanderita) + O(1) = O(n+1) = O(n)
-               esAdyacente121(pos1, j)){  // O(esAdyacente121) = O(n)
+            if(esPosicionSinJugarYSinBanderita(pos1, j, b, t) && // O(n^2)
+               esAdyacente121(pos1, j)){  // O(esAdyacente121) = O(n^2)
                 hayPosicion = true; // O(1)
                 p.first = pos1.first; // O(1)
-                p.second = pos1.second; // O(1)
+                p.second = pos1.second; 
             }
             k++; // O(2)
         }
@@ -126,12 +126,12 @@ bool hayPosicionSugerible(jugadas& j, banderitas& b, tablero& t, pos& p){
     return hayPosicion;
 }
 
-// O(n)
+// O(n^2)
 bool esPosicionSinJugarYSinBanderita(pos p, jugadas& j, banderitas& b, tablero& t){ // O(1) + O(1) + O(n) + O(n) = O(n)
-    jugada newJugada = {{p}, minasAdyacentes(t, p)};    // O(1) + O(minasAdyacentes) = O(2) = O(1)
-    return(posicionValida(p, t) &&                           // O(posicionValida) + O(1) = O(2) = O(1)
-          !perteneceAJugadas(newJugada, j) &&          // O(perteneceAJugadas) + O(1) = O(n+1) = O(n)
-          !contienePosicionBanderita(p, b));                                   // O(contienePosicionBanderita) = O(n)
+    jugada newJugada = {{p}, minasAdyacentes(t, p)};   // O(1) + O(minasAdyacentes) = O(2) = O(1)
+    return(posicionValida(p, t) &&                     // O(posicionValida) + O(1) = O(2) = O(1)
+          !perteneceAJugadas(newJugada, j) &&          // O(perteneceAJugadas) = O(n^2) (EN ESTE CASO)
+          !contienePosicionBanderita(p, b));           // O(contienePosicionBanderita) = O(n^2)
 }
 
 // O(1)
@@ -140,28 +140,28 @@ bool posicionValida(pos p, tablero& t){             // O(7) = O(1)
            0 <= p.second && p.second < t.size());   // O(1) + O(1) + O(1)
 }
 
-// O(n)
-bool esAdyacente121(pos p, jugadas& j){ // O(1) + O(1) + O(n) + O(n) + O(n) + O(n) = O(n)
+// O(n^2)
+bool esAdyacente121(pos p, jugadas& j){ // O(n^2)
     int p0 = p.first;                                    // O(1)
     int p1 = p.second;                                   // O(1)
-    return(es121Horizontal({p0-1, p1}, j) || // O(es121Horizontal) + O(1) + O(1)  = O(n+2)  = O(n)
-           es121Horizontal({p0+1, p1}, j) || // O(es121Horizontal) + O(1) + O(1)  = O(n+2)  = O(n)
-           es121Vertical({p0, p1-1}, j) ||   // O(es121Vertical)   + O(1) + O(1)  = O(n+2)  = O(n)
-           es121Vertical({p0, p1+1}, j));    // O(es121Vertical)   + O(1)         = O(n+1)  = O(n)
+    return(es121Horizontal({p0-1, p1}, j) || // O(es121Horizontal) + O(1) + O(1)  = O(n+2)  = O(n^2)
+           es121Horizontal({p0+1, p1}, j) || // O(es121Horizontal) + O(1) + O(1)  = O(n+2)  = O(n^2)
+           es121Vertical({p0, p1-1}, j) ||   // O(es121Vertical)   + O(1) + O(1)  = O(n+2)  = O(n^2)
+           es121Vertical({p0, p1+1}, j));    // O(es121Vertical)   + O(1)         = O(n+1)  = O(n^2)
 }
 
-// O(n)
-bool es121Horizontal(pos p, jugadas& j){ // O(n) + O(n) + O(n) = O(n)
-    return( perteneceAJugadas({{p.first, p.second - 1}, 1}, j) && // O(perteneceAJugadas) + O(1) + O(1) = O(n+2) = O(n)
-            perteneceAJugadas({{p.first, p.second}, 2}, j)   &&   // O(perteneceAJugadas) + O(1) = O(n+1) = O(n)
-            perteneceAJugadas({{p.first, p.second + 1}, 1}, j));   // O(perteneceAJugadas) + O(1) = O(n+1) = O(n)
+// O(n^2)
+bool es121Horizontal(pos p, jugadas& j){ // O(n^2)
+    return( perteneceAJugadas({{p.first, p.second - 1}, 1}, j) && // O(perteneceAJugadas) + O(1) + O(1) = O(n+2) = O(n^2)
+            perteneceAJugadas({{p.first, p.second}, 2}, j)   &&   // O(perteneceAJugadas) + O(1) = O(n+1) = O(n^2)
+            perteneceAJugadas({{p.first, p.second + 1}, 1}, j));   // O(perteneceAJugadas) + O(1) = O(n+1) = O(n^2)
 }
 
-// O(n)
+// O(n^2)
 bool es121Vertical(pos p, jugadas& j){
-    return( perteneceAJugadas({{p.first - 1, p.second}, 1}, j) &&    // O(perteneceAJugadas) + O(1) + O(1) = O(n+2) = O(n)
-            perteneceAJugadas({{p.first, p.second}, 2}, j)   &&     // O(perteneceAJugadas) + O(1) = O(n+1) = O(n)
-            perteneceAJugadas({{p.first + 1, p.second}, 1}, j));    // O(perteneceAJugadas) + O(1) = O(n+1) = O(n)
+    return( perteneceAJugadas({{p.first - 1, p.second}, 1}, j) &&    // O(perteneceAJugadas) + O(1) + O(1) = O(n+2) = O(n^2)
+            perteneceAJugadas({{p.first, p.second}, 2}, j)   &&     // O(perteneceAJugadas) + O(1) = O(n+1) = O(n^2)
+            perteneceAJugadas({{p.first + 1, p.second}, 1}, j));    // O(perteneceAJugadas) + O(1) = O(n+1) = O(n^2)
 }
 
 

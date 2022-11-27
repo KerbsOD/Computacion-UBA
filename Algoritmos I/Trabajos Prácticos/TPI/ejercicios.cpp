@@ -43,17 +43,18 @@ int minasAdyacentes(tablero& t, pos p) {  // O(1) + O(1) + O(1) + 3*( O(1) + O(1
 
 /******++++**************************** EJERCICIO plantarBanderita ***********+++***********************/
 
-// O(n)
+// O(n^2)
 void cambiarBanderita(tablero& t, jugadas& j, pos p, banderitas& b) { // O(n) + O(1) = O(n)
-    if(!contienePosicionBanderita(p, b)){ // O(contienePosicionBanderita) = O(n)
+    if(!contienePosicionBanderita(p, b)){ // O(contienePosicionBanderita) = O(n^2)
         b.push_back(p);                      // O(1)
     }
     else{
         quitarPosicion(p, b);             // O(quitarPosicion) = O(n)
     }
 }
-// O(n), en el peor caso puede ser que la banderita pertenezca a la posicion y debamos sacarla, pero para saber si esta
-// banderita pertenece, debemos iterar sobre nuestra lista actual de banderitas.
+// O(n^2), en el peor caso puede ser que la banderita pertenezca a la posicion y debamos sacarla, pero para saber si esta
+// banderita pertenece, debemos iterar sobre nuestra lista actual de banderitas, en el peor caso esta en la posicion [n][n] de la matriz
+// por lo que la lista seria de n*n elementos, el peor caso es O(n^2).
 // Si la banderita está tenemos que iterar nuevamente por la lista para quitarla como se ve en "quitarPosicion()". El peor
 // caso es cuando nuestra banderita esta en la ante-ultima posicion.
 
@@ -118,26 +119,26 @@ bool gano(tablero& t, jugadas& j) { // O(1) + O(1) + O(n^3) + O(n) + O(1) = O(n^
 
 /******++++**************************** EJERCICIO jugarPlus ***********+++***********************/
 
-//O(n^2)
+//O(n^4)
 void jugarPlus(tablero& t, banderitas& b, pos p, jugadas& j) { // O(5) + O(n^2) = O(n^2)
 
     vector<pos> candidatos = {};     // O(1)
 
-    if(!tieneUnaMina(t, p)){     // O(1)
+    if(!tieneUnaMina(t, p)){        // O(1)
         candidatos.push_back(p);    // O(1)
     }
 
     j.push_back({p, minasAdyacentes(t, p)});    // O(1) + O(minasAdyacentes) = O(1) + O(1) = O(1)
 
     int i = 0;                                          // O(1)
-    while (i < candidatos.size()) {                     // O(1) + n*O( linea 118 a 144) = O(1) + n * O(1 + 1 + n) = O(n^2)
+    while (i < candidatos.size()) {                     // O(1) + n*O(linea 118 a 144) = O(n^4)
 
         if(minasAdyacentes(t, candidatos[i]) == 0){     // O(minasAdyacentes) + O(1) + O(1) = O(1) + O(1) + O(1) = O(3) = O(1)
 
             int x = -1;                                       // O(1)
-            while(x <= 1){                                    // O(1) + 3*(linea 120 a 138) = O(1) + 3*O(1 + n) = O(n)
+            while(x <= 1){                                    // O(1) + 3*(linea 120 a 138) = O(1) + 3*O(1 + n) = O(n^4)
                 int y = -1;                                   // O(1)
-                while(y <= 1){                                // O(1) + 3*(linea 122 a 136) = O(1) + 3* O(14 + 2n) = O(n)
+                while(y <= 1){                                // O(1) + 3*(linea 122 a 136) = O(1) + 3* O(14 + 2n) = O(n^3)
                     int p0 = candidatos[i].first;             // O(2)
                     int p1 = candidatos[i].second;            // O(2)
                     pos nuevoCandidato;
@@ -145,8 +146,8 @@ void jugarPlus(tablero& t, banderitas& b, pos p, jugadas& j) { // O(5) + O(n^2) 
                     nuevoCandidato.second = p1 + y;           // O(2)
                     if(posicionValida(nuevoCandidato, t) && // O(posicionValida) + O(1) = O(1) + O(1) = O(2) = O(1)
                        !tieneUnaMina(t, nuevoCandidato) &&  // O(tieneUnaMina) + O(1) = O(1) + O(1) = O(2) = O(1)
-                       !contienePosicionBanderita(nuevoCandidato, b) &&      // O(esBanderita) + O(1) = O(n) + O(1) = O(n+1) = O(n)
-                       !perteneceAJugadas({nuevoCandidato, minasAdyacentes(t, nuevoCandidato)}, j))     // O(perteneceAJugadas) + O(minasAdyacentes) = O(n) + O(1) = O(n)
+                       !contienePosicionBanderita(nuevoCandidato, b) &&      // O(n)
+                       !perteneceAJugadas({nuevoCandidato, minasAdyacentes(t, nuevoCandidato)}, j))     // O(n^2) 
                     {
                         candidatos.push_back(nuevoCandidato); // O(1)
                         j.push_back({nuevoCandidato, minasAdyacentes(t, nuevoCandidato)}); // O(1) + O(minasAdyacentes) = O(1) + O(1) = O(1)
@@ -159,28 +160,25 @@ void jugarPlus(tablero& t, banderitas& b, pos p, jugadas& j) { // O(5) + O(n^2) 
         i++;    // O(2)
     }
 }
-// O(n^2)
-// En este caso iteramos sobre la lista de nuestros candidatos,  siendo estos las casillas sin minas adyascentes validos.
-// luego buscamos si adyacentemente tienen otras minas que tampoco tengan minas. Luego los agregamos a candidatos y volvemos a empezar con el siguiente.
-// La complejidad viene de chequear que nuestro candidato no este en banderitas, que no este en jugadas y luego lo agregamos a la lista de candidatos. El problema
-// es que cada vez que chequeamos un candidato nuevo tenemos que chequear que todas sus adyacentes no esten en jugadas. Esto nos genera un conflicto donde
-// podriamos llegar a chequear que una posicion no este en jugadas unas 8 veces. Esto hace que el peor caso sea tener que iterar a una casilla 8 veces y que esta este en la ultima posicion
-// de jugadas. Ademas, el caso donde candidatos es mas largo es cuando vamos desde la esquina del tablero [0][0] con jugarPlus a la esquina [n][n]
-// esto vuelve nuestro jugar plus del tipo O(n^2)
+// O(n^4)
+// En el peor caso recorremos toda la matriz por lo que la cantidad de candidatos total es igual a n^2. Luego se tiene que buscar si una jugada pertenece
+// a la lista de jugadas, en el peor caso esta jugada estará al final de la lista. La lista es de tamaño n^2 (cantidad de posiciones jugables) por lo que "perteneceAJugadas()" EN ESTE CASO
+// será de n^2.
+// Para cada candidato debo recorrer "perteneceAJugadas()", entonces en el peor caso tengo n^2 candidatos y una lista con n^2 jugadas.
+// por lo tanto la complejidad total es de O(n^4) 
 
 
 /******++++**************************** EJERCICIO sugerirAutomatico121 ***********+++***********************/
 
-// O(n^3)
+// O(n^4)
 bool sugerirAutomatico121(tablero& t, banderitas& b, jugadas& j, pos& p) {
-    return(hayPosicionSugerible(j, b, t, p)); // O(n^3)
+    return(hayPosicionSugerible(j, b, t, p)); // O(n^4)
 }
-// O(n^3)
+// O(n^4)
 // Debemos ver si hay una posicion sugerible, para esto buscamos en el tablero 3 posiciones que cumplen la estrategia 121
-// pero primero debemos ver que estas posiciones no sean ni jugar ni banderita, por lo que lo vuelve de complejidad O(n^3)
-// pues iteramos nxn veces sobre la matriz y luego n veces sobre jugadas y banderitas.
-// el peor caso es cuando revisamos la posicion nxn y esta no pertenece a la jugada. Porque deberiamos chequear toda la lista con
-// esAdyacente121
+// pero primero debemos ver que estas posiciones no sean ni jugar ni banderita, por lo que lo vuelve de complejidad O(n^4)
+// pues iteramos n*n veces sobre la matriz y luego n^2 veces sobre jugadas ya que en el peor caso, buscamos al final de la lista.
+
 
 
 
